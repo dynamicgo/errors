@@ -37,7 +37,7 @@ func (err *stackError) Error() string {
 	}
 
 	if err.prev != nil {
-		msg = fmt.Sprintf("%srased by: %s", msg, err.prev)
+		msg = fmt.Sprintf("%scaused by: %s", msg, err.prev)
 	}
 
 	return msg
@@ -66,6 +66,6 @@ func (err *stackError) CallStack() string {
 	return buff.String()
 }
 
-func (err *stackError) Raised() error {
+func (err *stackError) Cause() error {
 	return err.prev
 }

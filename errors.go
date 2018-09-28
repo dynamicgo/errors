@@ -9,7 +9,7 @@ import (
 type Error interface {
 	error              // mixin standard error interface
 	CallStack() string // get call stack
-	Raised() error     // error chain
+	Cause() error      // error chain
 }
 
 // PrintStack print stack flag
@@ -35,7 +35,7 @@ func (facade *facadeImpl) Is(err, target error) bool {
 			return false
 		}
 
-		current = e.Raised()
+		current = e.Cause()
 
 		if current == nil {
 			return false
@@ -76,7 +76,7 @@ func (facade *facadeImpl) As(err error, target interface{}) bool {
 			return false
 		}
 
-		current = e.Raised()
+		current = e.Cause()
 
 		if current == nil {
 			return false
