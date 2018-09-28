@@ -8,7 +8,7 @@ import (
 // ErrorFacade .
 type ErrorFacade interface {
 	Is(err, target error) bool
-	As(err interface{}, target error) bool
+	As(err error, target interface{}) bool
 }
 
 var locker sync.RWMutex
@@ -34,7 +34,7 @@ func loopFacade(f func(facade ErrorFacade) bool) {
 	once.Do(initFacades)
 
 	for _, facade := range facades {
-		if !f(facade) {
+		if f(facade) {
 			return
 		}
 	}

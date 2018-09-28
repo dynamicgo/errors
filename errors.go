@@ -1,6 +1,9 @@
 package xerrors
 
-import "reflect"
+import (
+	"fmt"
+	"reflect"
+)
 
 // Error .
 type Error interface {
@@ -17,14 +20,16 @@ type facadeImpl struct {
 
 func (facade *facadeImpl) Is(err, target error) bool {
 
-	current := target
+	current := err
 
 	for {
-		if current == err {
+
+		if current == target {
+
 			return true
 		}
 
-		e, ok := err.(Error)
+		e, ok := current.(Error)
 
 		if !ok {
 			return false
@@ -39,31 +44,33 @@ func (facade *facadeImpl) Is(err, target error) bool {
 
 }
 
-func (facade *facadeImpl) As(err interface{}, target error) bool {
+func (facade *facadeImpl) As(err error, target interface{}) bool {
 
-	errPointT := reflect.TypeOf(err)
+	errPointT := reflect.TypeOf(target)
 
 	if errPointT.Kind() != reflect.Ptr {
-		panic("invalid type")
+		panic("target must be a point")
 	}
 
 	errT := errPointT.Elem()
 
-	if errT.Kind() != reflect.Ptr || errT.Kind() != reflect.Interface {
-		panic("invalid type")
+	if errT.Kind() != reflect.Ptr && errT.Kind() != reflect.Interface {
+		panic(fmt.Sprintf("invalid type: %s", errT.Kind()))
 	}
 
-	current := target
+	current := err
 
 	for {
+		println(reflect.TypeOf(current).String())
+
 		currentT := reflect.TypeOf(current)
 
 		if currentT == errT || currentT.Implements(errT) {
-			reflect.ValueOf(err).Elem().Set(reflect.ValueOf(current))
+			reflect.ValueOf(target).Elem().Set(reflect.ValueOf(current))
 			return true
 		}
 
-		e, ok := err.(Error)
+		e, ok := current.(Error)
 
 		if !ok {
 			return false
@@ -79,4 +86,46 @@ func (facade *facadeImpl) As(err interface{}, target error) bool {
 
 func init() {
 	RegisterFacade("xerrors", &facadeImpl{})
+}
+
+// Is check if the err is target err
+func Is(err, target error) (ok bool) {
+	loopFacade(func(facade ErrorFacade) bool {
+
+		ok = facade.Is(err, target)
+
+		if ok {
+			return true
+		}
+
+		return false
+	})
+
+	return
+}
+
+// As check if the err is target err
+func As(err error, target interface{}) (ok bool) {
+	loopFacade(func(facade ErrorFacade) bool {
+
+		ok = facade.As(err, target)
+
+		if ok {
+			return true
+		}
+
+		return false
+	})
+
+	return
+}
+
+// Errorf .
+func Errorf(fmtstring string, args ...interface{}) error {
+	return New(3, fmt.Errorf(fmtstring, args...), nil)
+}
+
+// Wrapf .
+func Wrapf(err error, fmtstring string, args ...interface{}) error {
+	return New(3, fmt.Errorf(fmtstring, args...), err)
 }

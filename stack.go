@@ -3,6 +3,7 @@ package xerrors
 import (
 	"bytes"
 	"fmt"
+	"path/filepath"
 	"runtime"
 	"strings"
 )
@@ -29,14 +30,14 @@ func New(skip int, err, prev error) Error {
 
 func (err *stackError) Error() string {
 
-	msg := err.Error()
+	msg := err.err.Error()
 
 	if PrintStack {
 		msg = fmt.Sprintf("%s\n%s", msg, err.CallStack())
 	}
 
 	if err.prev != nil {
-		msg = fmt.Sprintf("%s\nrased by: %s", msg, err.prev)
+		msg = fmt.Sprintf("%srased by: %s", msg, err.prev)
 	}
 
 	return msg
@@ -55,7 +56,7 @@ func (err *stackError) CallStack() string {
 			frame.File = string(frame.File[index+4:])
 		}
 
-		buff.WriteString(fmt.Sprintf("\t%s\n\t\t%s:%d\n", frame.Function, frame.File, frame.Line))
+		buff.WriteString(fmt.Sprintf("\t%s(%s:%d)\n", frame.Function, filepath.Base(frame.File), frame.Line))
 
 		if !more {
 			break
