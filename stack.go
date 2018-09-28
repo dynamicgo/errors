@@ -1,0 +1,70 @@
+package xerrors
+
+import (
+	"bytes"
+	"fmt"
+	"runtime"
+	"strings"
+)
+
+type stackError struct {
+	err     error     // raw error
+	prev    error     // parent error
+	stackPC []uintptr // error stack
+}
+
+// New create new error with skip
+func New(skip int, err, prev error) Error {
+
+	pcs := make([]uintptr, 32)
+
+	count := runtime.Callers(skip, pcs)
+
+	return &stackError{
+		err:     err,
+		prev:    prev,
+		stackPC: pcs[:count],
+	}
+}
+
+func (err *stackError) Error() string {
+
+	msg := err.Error()
+
+	if PrintStack {
+		msg = fmt.Sprintf("%s\n%s", msg, err.CallStack())
+	}
+
+	if err.prev != nil {
+		msg = fmt.Sprintf("%s\nrased by: %s", msg, err.prev)
+	}
+
+	return msg
+}
+
+func (err *stackError) CallStack() string {
+	frames := runtime.CallersFrames(err.stackPC)
+
+	var buff bytes.Buffer
+
+	for {
+		frame, more := frames.Next()
+
+		if index := strings.Index(frame.File, "src"); index != -1 {
+			// trim GOPATH or GOROOT prifix
+			frame.File = string(frame.File[index+4:])
+		}
+
+		buff.WriteString(fmt.Sprintf("\t%s\n\t\t%s:%d\n", frame.Function, frame.File, frame.Line))
+
+		if !more {
+			break
+		}
+	}
+
+	return buff.String()
+}
+
+func (err *stackError) Raised() error {
+	return err.prev
+}
