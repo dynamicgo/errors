@@ -31,17 +31,11 @@ func (err *apiErr) Code() int {
 	return err.code
 }
 
-// ErrInternal .
-var ErrInternal = New(-1, "internal error")
-
-// ErrSucceed .
-var ErrSucceed = New(0, "error success")
-
 // As convert any err to APIErr
-func As(err error) APIErr {
+func As(err error, deferr APIErr) APIErr {
 
 	if err == nil {
-		return ErrSucceed
+		panic("invalid input")
 	}
 
 	var apiErr APIErr
@@ -50,5 +44,5 @@ func As(err error) APIErr {
 		return apiErr
 	}
 
-	return ErrInternal
+	return deferr
 }
