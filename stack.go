@@ -14,8 +14,8 @@ type stackError struct {
 	stackPC []uintptr // error stack
 }
 
-// New create new error with skip
-func New(skip int, err, prev error) Error {
+// NewStackError create new error with skip
+func NewStackError(skip int, err, prev error) Error {
 
 	pcs := make([]uintptr, 32)
 

@@ -1,6 +1,7 @@
 package xerrors
 
 import (
+	"errors"
 	"fmt"
 	"reflect"
 )
@@ -122,10 +123,20 @@ func As(err error, target interface{}) (ok bool) {
 
 // Errorf .
 func Errorf(fmtstring string, args ...interface{}) error {
-	return New(3, fmt.Errorf(fmtstring, args...), nil)
+	return NewStackError(3, fmt.Errorf(fmtstring, args...), nil)
+}
+
+// New .
+func New(message string) error {
+	return NewStackError(3, errors.New(message), nil)
 }
 
 // Wrapf .
 func Wrapf(err error, fmtstring string, args ...interface{}) error {
-	return New(3, fmt.Errorf(fmtstring, args...), err)
+	return NewStackError(3, fmt.Errorf(fmtstring, args...), err)
+}
+
+// Wrap .
+func Wrap(err error, message string) error {
+	return NewStackError(3, errors.New(message), err)
 }
