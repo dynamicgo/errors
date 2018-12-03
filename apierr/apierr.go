@@ -2,6 +2,8 @@ package apierr
 
 import (
 	"github.com/dynamicgo/xerrors"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 )
 
 // APIErr .
@@ -38,11 +40,25 @@ func As(err error, deferr APIErr) APIErr {
 		panic("invalid input")
 	}
 
-	var apiErr APIErr
+	var ae APIErr
 
-	if xerrors.As(err, &apiErr) {
-		return apiErr
+	if xerrors.As(err, &ae) {
+		return ae
+	}
+
+	s, ok := status.FromError(err)
+
+	if ok {
+		return New(-int(s.Code()-100), s.Message())
 	}
 
 	return deferr
+}
+
+// AsGrpcError .
+func AsGrpcError(err APIErr) error {
+
+	code := uint32(-err.Code())
+
+	return status.New(codes.Code(100+code), err.Error()).Err()
 }
