@@ -48,8 +48,8 @@ func As(err error, deferr APIErr) APIErr {
 
 	s, ok := status.FromError(err)
 
-	if ok {
-		return New(-int(s.Code()-100), s.Message())
+	if ok && s.Code() > 5000 {
+		return New(int(s.Code()-10000), s.Message())
 	}
 
 	return deferr
@@ -58,7 +58,7 @@ func As(err error, deferr APIErr) APIErr {
 // AsGrpcError .
 func AsGrpcError(err APIErr) error {
 
-	code := uint32(-err.Code())
+	code := uint32(err.Code())
 
-	return status.New(codes.Code(100+code), err.Error()).Err()
+	return status.New(codes.Code(10000+code), err.Error()).Err()
 }
