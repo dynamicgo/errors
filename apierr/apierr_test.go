@@ -2,6 +2,8 @@ package apierr
 
 import (
 	"errors"
+	"fmt"
+	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -38,4 +40,8 @@ func TestApiError(t *testing.T) {
 
 	println(err.Error())
 
+}
+
+func TestSplit(t *testing.T) {
+	println(fmt.Sprintf("%v", strings.Split("test|||test", "|||")))
 }
